@@ -59,10 +59,15 @@ html{scroll-behavior:smooth;}
 ::-webkit-scrollbar-track{background:var(--paper2);}
 ::-webkit-scrollbar-thumb{background:var(--gold);border-radius:4px;}
 
-/* ═══════════ PAGE SYSTEM ═══════════ */
-.page{display:none;min-height:100vh;}
+/* ═══════════ PAGE SYSTEM ═══════════
+   Belt-and-suspenders: every .page / #page-app is forced
+   hidden UNLESS it explicitly carries .active. The :not()
+   rule guarantees this even if a browser/CDN ever serves a
+   stale cached copy of this stylesheet, or if class state
+   gets out of sync for any reason. */
+.page:not(.active){display:none!important;}
 .page.active{display:block;}
-#page-app{display:none;min-height:100vh;}
+#page-app:not(.active){display:none!important;}
 #page-app.active{display:flex;}
 .hidden{display:none!important;}
 

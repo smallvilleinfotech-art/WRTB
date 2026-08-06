@@ -290,6 +290,7 @@ tr:not(:last-child) td{border-bottom:1.5px solid var(--border2);}
 .devo-opt.correct{border-color:var(--green);background:var(--green-l);color:var(--green);}
 .devo-opt.wrong{border-color:var(--red);background:var(--red-l);color:var(--red);}
 .devo-already{background:var(--green-l);border:1.5px solid var(--green);color:var(--green);border-radius:var(--r2);padding:14px 16px;font-size:13.5px;font-weight:700;text-align:center;margin-bottom:12px;}
+.devo-score-big{font-size:26px;font-weight:900;color:var(--gold3);text-align:center;padding:10px 0;}
 
 /* pledge */
 .pledge-card{background:linear-gradient(160deg,#0B0B0A,#211F1A 45%,#3a2f10);border-radius:var(--r3);padding:32px;text-align:center;box-shadow:var(--sh2);}
@@ -799,9 +800,10 @@ $('#notif-close').onclick = () => $('#notif-panel').classList.remove('open');
 
 /* ───────────── dashboard ───────────── */
 async function loadDashboard(){
-  const { data: devo } = await sb.from('devotionals').select('*').order('devo_date',{ascending:false}).limit(1).maybeSingle();
-  $('#hero-ref').textContent = devo?.verse_ref || 'No devotional posted yet';
-  $('#hero-verse').textContent = devo?.verse_text || '';
+  const today = new Date().toISOString().slice(0,10);
+  const { data: devo } = await sb.from('devotionals').select('*').lte('devo_date', today).order('devo_date',{ascending:false}).limit(1).maybeSingle();
+  $('#hero-ref').textContent = devo ? (devo.day_number ? `Day ${devo.day_number} · ${devo.verse_ref}` : devo.verse_ref) : 'No devotional posted yet';
+  $('#hero-verse').textContent = devo?.verse_text || (devo ? 'Open your Bible and read this passage today.' : '');
 
   const { count: memberCount } = await sb.from('profiles').select('*',{count:'exact',head:true}).eq('status','approved');
   $('#stat-members').textContent = memberCount ?? '0';
@@ -815,55 +817,176 @@ async function loadDashboard(){
   $('#dash-pledge').innerHTML = pledge ? `<p style="font-family:var(--script);font-style:italic;font-size:15px;line-height:1.7;">${escapeHtml(pledge.content)}</p>` : '<div class="empty">No active pledge yet.</div>';
 }
 
-/* ───────────── devotional ───────────── */
+/* ───────────── devotional (3 questions/day, instant scoring) ───────────── */
 async function loadDevotional(){
   const c = $('#devo-container');
-  const { data: devo } = await sb.from('devotionals').select('*').order('devo_date',{ascending:false}).limit(1).maybeSingle();
-  if (!devo) { c.innerHTML = '<div class="empty">No devotional posted yet.</div>'; return; }
-  const { data: myResp } = await sb.from('devotional_responses').select('*').eq('devotional_id',devo.id).eq('user_id',ME.id).maybeSingle();
+  c.innerHTML = '<div class="empty">Loading…</div>';
 
-  let optsHtml = '';
-  devo.options.forEach((opt, i) => {
-    let cls = 'devo-opt';
-    if (myResp) cls += (i === devo.correct_index) ? ' correct' : (i === myResp.selected_index ? ' wrong' : '');
-    optsHtml += `<div class="${cls}" data-i="${i}" ${myResp?'':''}>${escapeHtml(opt)}</div>`;
-  });
+  const today = new Date().toISOString().slice(0,10);
+  const { data: devo } = await sb.from('devotionals').select('*').lte('devo_date', today).order('devo_date',{ascending:false}).limit(1).maybeSingle();
+  if (!devo) { c.innerHTML = '<div class="empty">No devotional posted yet. Check back soon!</div>'; return; }
 
-  c.innerHTML = `
-    <div class="devo-verse-box"><div class="devo-verse-ref">${escapeHtml(devo.verse_ref)}</div><div class="devo-verse-text">"${escapeHtml(devo.verse_text)}"</div></div>
+  const { data: questions } = await sb.from('devotional_questions').select('*').eq('devotional_id', devo.id).order('question_order',{ascending:true});
+  if (!questions || !questions.length) { c.innerHTML = '<div class="empty">Today\'s devotional has no questions yet.</div>'; return; }
+
+  const { data: myResponses } = await sb.from('devotional_responses').select('*').eq('user_id', ME.id).in('question_id', questions.map(q=>q.id));
+  renderDevotional(devo, questions, myResponses || []);
+}
+
+function devoReadingHtml(devo){
+  return `<div class="devo-verse-box">
+    <div class="devo-verse-ref">${devo.day_number ? `Day ${devo.day_number} · ` : ''}${escapeHtml(devo.verse_ref)}</div>
+    ${devo.verse_text
+      ? `<div class="devo-verse-text">"${escapeHtml(devo.verse_text)}"</div>`
+      : `<div class="devo-verse-text" style="font-family:var(--sans);font-style:normal;font-size:13.5px;opacity:.85;">Open your Bible and read this passage, then answer the questions below.</div>`}
+  </div>`;
+}
+
+function renderDevotional(devo, questions, myResponses){
+  const c = $('#devo-container');
+  const respByQ = {};
+  myResponses.forEach(r => respByQ[r.question_id] = r);
+  const allAnswered = questions.every(q => respByQ[q.id]);
+
+  if (allAnswered) {
+    const correctCount = questions.filter(q => respByQ[q.id].is_correct).length;
+    const totalPoints = myResponses.reduce((sum,r)=>sum+(r.points_awarded||0),0);
+    const reviewHtml = questions.map((q,i) => {
+      const resp = respByQ[q.id];
+      const optsHtml = q.options.map((opt,oi) => {
+        let cls = 'devo-opt';
+        if (oi === q.correct_index) cls += ' correct';
+        else if (oi === resp.selected_index) cls += ' wrong';
+        return `<div class="${cls}" style="pointer-events:none;">${escapeHtml(opt)}</div>`;
+      }).join('');
+      return `<div class="card">
+        <div class="card-h"><h3>Question ${i+1}</h3><span class="badge b-open">${escapeHtml(q.difficulty)}</span></div>
+        <p style="font-size:13.5px;font-weight:700;color:var(--ink);margin-bottom:10px;">${escapeHtml(q.question_text)}</p>
+        ${optsHtml}
+      </div>`;
+    }).join('');
+
+    c.innerHTML = devoReadingHtml(devo) + `
+      <div class="card">
+        <div class="card-h"><h3>Today's Score</h3></div>
+        <div class="devo-score-big">${correctCount} / ${questions.length} correct · +${totalPoints} pts</div>
+      </div>
+      ${reviewHtml}
+      <div style="text-align:center;margin-top:14px;">
+        <button class="btn btn-gold" onclick="switchView('leaderboard')">View Leaderboard</button>
+      </div>`;
+    refreshMyPoints();
+    return;
+  }
+
+  const currentIndex = questions.findIndex(q => !respByQ[q.id]);
+  const current = questions[currentIndex];
+  const optsHtml = current.options.map((opt,i) => `<div class="devo-opt" data-i="${i}">${escapeHtml(opt)}</div>`).join('');
+
+  c.innerHTML = devoReadingHtml(devo) + `
     <div class="card">
-      <div class="card-h"><h3>${escapeHtml(devo.question)}</h3></div>
-      ${myResp ? `<div class="devo-already">${myResp.is_correct ? '✅ Correct! +10 points' : '❌ Not quite — see the highlighted answer.'}</div>` : ''}
+      <div class="card-h"><h3>Question ${currentIndex+1} of ${questions.length}</h3><span class="badge b-open">${escapeHtml(current.difficulty)}</span></div>
+      <p style="font-size:14.5px;font-weight:700;color:var(--ink);margin-bottom:12px;">${escapeHtml(current.question_text)}</p>
       <div id="devo-opts">${optsHtml}</div>
+      <div id="devo-feedback"></div>
     </div>`;
 
-  if (!myResp) {
-    $$('#devo-opts .devo-opt').forEach(el => {
-      el.onclick = async () => {
-        const i = parseInt(el.dataset.i);
-        const { error } = await sb.from('devotional_responses').insert({
-          devotional_id: devo.id, user_id: ME.id, selected_index: i, is_correct: i === devo.correct_index
-        });
-        if (!error) loadDevotional();
-      };
-    });
-  }
-}
-$('#btn-new-devotional').onclick = () => openModal('New Devotional', `
-  <div class="fg"><label>Date</label><input type="date" id="m-devo-date" value="${new Date().toISOString().slice(0,10)}"></div>
-  <div class="fg"><label>Verse Reference</label><input type="text" id="m-devo-ref" placeholder="John 3:16"></div>
-  <div class="fg"><label>Verse Text</label><textarea id="m-devo-text"></textarea></div>
-  <div class="fg"><label>Question</label><input type="text" id="m-devo-q"></div>
-  <div class="fg"><label>Options (one per line)</label><textarea id="m-devo-opts" placeholder="Option A&#10;Option B&#10;Option C"></textarea></div>
-  <div class="fg"><label>Correct option (0-based index)</label><input type="number" id="m-devo-correct" value="0" min="0"></div>
-`, async () => {
-  const options = $('#m-devo-opts').value.split('\n').map(s=>s.trim()).filter(Boolean);
-  const { error } = await sb.from('devotionals').insert({
-    devo_date: $('#m-devo-date').value, verse_ref: $('#m-devo-ref').value, verse_text: $('#m-devo-text').value,
-    question: $('#m-devo-q').value, options, correct_index: parseInt($('#m-devo-correct').value)||0, created_by: ME.id
+  $$('#devo-opts .devo-opt').forEach(el => {
+    el.onclick = async () => {
+      $$('#devo-opts .devo-opt').forEach(o => o.style.pointerEvents = 'none');
+      const i = parseInt(el.dataset.i);
+      const isCorrect = i === current.correct_index;
+      const { error } = await sb.from('devotional_responses').insert({
+        question_id: current.id, devotional_id: devo.id, user_id: ME.id,
+        selected_index: i, is_correct: isCorrect, points_awarded: isCorrect ? current.points : 0
+      });
+      if (error) { alert(error.message); $$('#devo-opts .devo-opt').forEach(o => o.style.pointerEvents = ''); return; }
+
+      $$('#devo-opts .devo-opt').forEach((o,oi) => {
+        if (oi === current.correct_index) o.classList.add('correct');
+        else if (oi === i) o.classList.add('wrong');
+      });
+      const isLast = currentIndex + 1 >= questions.length;
+      $('#devo-feedback').innerHTML = `
+        <div class="devo-already">${isCorrect ? `✅ Correct! +${current.points} points` : '❌ Not quite — the correct answer is highlighted above.'}</div>
+        <button class="btn btn-primary" id="devo-next" style="margin-top:10px;">${isLast ? "See Today's Score →" : 'Next Question →'}</button>`;
+      $('#devo-next').onclick = () => loadDevotional();
+    };
   });
-  if (!error) { closeModal(); loadDevotional(); loadDashboard(); } else alert(error.message);
-});
+}
+
+async function refreshMyPoints(){
+  const { data } = await sb.from('profiles').select('points').eq('id', ME.id).single();
+  if (data) { PROFILE.points = data.points; if ($('#stat-points')) $('#stat-points').textContent = data.points; }
+}
+
+$('#btn-new-devotional').onclick = async () => {
+  const { count } = await sb.from('devotionals').select('*',{count:'exact',head:true});
+  const nextDay = (count||0) + 1;
+  const suggestedDate = new Date(); suggestedDate.setDate(suggestedDate.getDate() + (count||0));
+  const dateStr = suggestedDate.toISOString().slice(0,10);
+
+  openModal('New Devotional (3 Questions)', `
+    <div class="two-col">
+      <div class="fg"><label>Day Number</label><input type="number" id="m-devo-day" value="${nextDay}" min="1"></div>
+      <div class="fg"><label>Unlock Date</label><input type="date" id="m-devo-date" value="${dateStr}"></div>
+    </div>
+    <div class="fg"><label>Bible Reading Reference</label><input type="text" id="m-devo-ref" placeholder="Genesis 1:1–5"></div>
+    <div class="fg"><label>Full Passage Text (optional)</label><textarea id="m-devo-text" placeholder="Leave blank to have members open their own Bible to read it"></textarea></div>
+    ${[1,2,3].map(n => `
+      <div class="card" style="background:var(--paper2);margin-top:${n===1?'6':'12'}px;">
+        <div class="card-h"><h3>Question ${n}</h3></div>
+        <div class="fg"><label>Difficulty</label>
+          <select id="m-q${n}-diff">
+            <option value="Easy" ${n===1?'selected':''}>Easy</option>
+            <option value="Medium" ${n===2?'selected':''}>Medium</option>
+            <option value="Application" ${n===3?'selected':''}>Application</option>
+          </select>
+        </div>
+        <div class="fg"><label>Question</label><input type="text" id="m-q${n}-text"></div>
+        <div class="two-col">
+          <div class="fg"><label>Option A</label><input type="text" id="m-q${n}-a"></div>
+          <div class="fg"><label>Option B</label><input type="text" id="m-q${n}-b"></div>
+        </div>
+        <div class="two-col">
+          <div class="fg"><label>Option C</label><input type="text" id="m-q${n}-c"></div>
+          <div class="fg"><label>Option D</label><input type="text" id="m-q${n}-d"></div>
+        </div>
+        <div class="fg"><label>Correct Option</label>
+          <select id="m-q${n}-correct">
+            <option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option>
+          </select>
+        </div>
+      </div>`).join('')}
+  `, async () => {
+    const dayNumber = parseInt($('#m-devo-day').value) || null;
+    const devoDate = $('#m-devo-date').value;
+    const verseRef = $('#m-devo-ref').value.trim();
+    const verseText = $('#m-devo-text').value.trim() || null;
+    if (!verseRef || !devoDate) { alert('Please fill in the reading reference and unlock date.'); return; }
+
+    const { data: newDevo, error: devoErr } = await sb.from('devotionals')
+      .insert({ day_number: dayNumber, devo_date: devoDate, verse_ref: verseRef, verse_text: verseText, created_by: ME.id })
+      .select().single();
+    if (devoErr) { alert(devoErr.message); return; }
+
+    const questions = [1,2,3].map(n => ({
+      devotional_id: newDevo.id,
+      question_order: n,
+      difficulty: $(`#m-q${n}-diff`).value,
+      question_text: $(`#m-q${n}-text`).value.trim(),
+      options: [$(`#m-q${n}-a`).value.trim(), $(`#m-q${n}-b`).value.trim(), $(`#m-q${n}-c`).value.trim(), $(`#m-q${n}-d`).value.trim()],
+      correct_index: parseInt($(`#m-q${n}-correct`).value),
+      points: 10
+    }));
+    if (questions.some(q => !q.question_text || q.options.some(o => !o))) { alert('Please fill in all 3 questions and their 4 options.'); return; }
+
+    const { error: qErr } = await sb.from('devotional_questions').insert(questions);
+    if (qErr) { alert(qErr.message); return; }
+
+    closeModal(); loadDevotional(); loadDashboard();
+  });
+};
 
 /* ───────────── pledge ───────────── */
 async function loadPledges(){

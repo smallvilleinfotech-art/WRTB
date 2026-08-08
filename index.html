@@ -154,8 +154,15 @@ html{scroll-behavior:smooth;}
 .notif-badge{background:#9A3232;color:white;border-radius:20px;font-size:10px;font-weight:800;padding:2px 7px;min-width:19px;text-align:center;display:none;}
 .notif-badge.show{display:inline-block;}
 
-.nav-grp{padding:12px 8px 4px;}
-.nav-grp-lbl{font-size:9px;font-weight:800;letter-spacing:2.2px;text-transform:uppercase;color:rgba(198,162,77,.65);padding:0 8px;margin-bottom:5px;}
+.nav-grp{padding:6px 8px 4px;}
+.nav-grp-lbl{font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:rgba(240,235,215,.88);padding:9px 11px;margin-bottom:2px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;border-radius:var(--r2);transition:background .18s;}
+.nav-grp-lbl:hover{background:rgba(198,162,77,.14);}
+.nav-grp-lbl .ni{font-size:16px;width:20px;text-align:center;}
+.nav-grp-lbl .chev{font-size:10px;color:rgba(198,162,77,.7);transition:transform .22s;margin-left:auto;}
+.nav-grp.open .nav-grp-lbl .chev{transform:rotate(90deg);}
+.nav-grp.open .nav-grp-lbl{background:rgba(198,162,77,.12);}
+.nav-items{max-height:0;overflow:hidden;transition:max-height .28s ease;padding-left:6px;}
+.nav-grp.open .nav-items{max-height:520px;}
 .nav-item{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:var(--r2);cursor:pointer;transition:all .18s;color:rgba(240,235,215,.82);font-size:12.5px;font-weight:600;margin-bottom:2px;border:1.5px solid transparent;position:relative;overflow:hidden;}
 .nav-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--gold2);transform:scaleY(0);transition:transform .2s;}
 .nav-item.active::before{transform:scaleY(1);}
@@ -433,37 +440,50 @@ tr:not(:last-child) td{border-bottom:1.5px solid var(--border2);}
       <span class="notif-badge" id="notif-badge">0</span>
     </div>
     <nav>
-      <div class="nav-grp">
-        <div class="nav-grp-lbl">Home</div>
-        <div class="nav-item active" data-view="dashboard"><span class="ni">🏠</span> Dashboard</div>
-        <div class="nav-item" data-view="chat"><span class="ni">💬</span> Chat</div>
-        <div class="nav-item" data-view="leaderboard"><span class="ni">🏆</span> Leaderboard</div>
-        <div class="nav-item" data-view="reading"><span class="ni">📅</span> Reading Plan</div>
-        <div class="nav-item" data-view="journal"><span class="ni">🖋️</span> Journal</div>
-        <div class="nav-item" data-view="prayerwall"><span class="ni">🙏</span> Prayer Wall</div>
-        <div class="nav-item" data-view="content"><span class="ni">🎧</span> Content Hub</div>
-        <div class="nav-item" data-view="badges"><span class="ni">🏅</span> My Badges</div>
-        <div class="nav-item" data-view="reports"><span class="ni">📄</span> My Report</div>
+      <div class="nav-grp open" data-grp="home">
+        <div class="nav-grp-lbl"><span class="ni">🏠</span> Home <span class="chev">▶</span></div>
+        <div class="nav-items">
+          <div class="nav-item active" data-view="dashboard"><span class="ni">🏠</span> Dashboard</div>
+          <div class="nav-item" data-view="chat"><span class="ni">💬</span> Chat</div>
+          <div class="nav-item" data-view="devotional"><span class="ni">📖</span> Devotional</div>
+        </div>
       </div>
-      <div class="nav-grp">
-        <div class="nav-grp-lbl">The Word</div>
-        <div class="nav-item" data-view="devotional"><span class="ni">📖</span> Devotional</div>
-        <div class="nav-item" data-view="pledge"><span class="ni">✝️</span> Pledge</div>
-        <div class="nav-item" data-view="competitions"><span class="ni">🎬</span> Competitions</div>
-        <div class="nav-item" data-view="assignments"><span class="ni">📝</span> Assignments</div>
-        <div class="nav-item" data-view="meetings"><span class="ni">📅</span> Meetings</div>
+      <div class="nav-grp" data-grp="growth">
+        <div class="nav-grp-lbl"><span class="ni">🌱</span> Growth <span class="chev">▶</span></div>
+        <div class="nav-items">
+          <div class="nav-item" data-view="reading"><span class="ni">📅</span> Reading Plan</div>
+          <div class="nav-item" data-view="journal"><span class="ni">🖋️</span> Journal</div>
+          <div class="nav-item" data-view="badges"><span class="ni">🏅</span> My Badges</div>
+          <div class="nav-item" data-view="reports"><span class="ni">📄</span> My Report</div>
+          <div class="nav-item" data-view="pledge"><span class="ni">✝️</span> Pledge</div>
+        </div>
       </div>
-      <div class="nav-grp">
-        <div class="nav-grp-lbl">Support</div>
-        <div class="nav-item" data-view="talk"><span class="ni">🗣️</span> Talk to Excos</div>
-        <div class="nav-item" data-view="distress"><span class="ni">🆘</span> Distress Line</div>
+      <div class="nav-grp" data-grp="community">
+        <div class="nav-grp-lbl"><span class="ni">🤝</span> Community <span class="chev">▶</span></div>
+        <div class="nav-items">
+          <div class="nav-item" data-view="leaderboard"><span class="ni">🏆</span> Leaderboard</div>
+          <div class="nav-item" data-view="prayerwall"><span class="ni">🙏</span> Prayer Wall</div>
+          <div class="nav-item" data-view="content"><span class="ni">🎧</span> Content Hub</div>
+          <div class="nav-item" data-view="talk"><span class="ni">🗣️</span> Talk to Excos</div>
+          <div class="nav-item" data-view="distress"><span class="ni">🆘</span> Distress Line</div>
+        </div>
       </div>
-      <div class="nav-grp admin-only" id="nav-admin-grp">
-        <div class="nav-grp-lbl">Admin</div>
-        <div class="nav-item" data-view="users"><span class="ni">👥</span> Members</div>
-        <div class="nav-item" data-view="planadmin"><span class="ni">🗓️</span> Manage Plan</div>
-        <div class="nav-item" data-view="adminreports"><span class="ni">📊</span> Reports</div>
-        <div class="nav-item" data-view="engagement"><span class="ni">📈</span> Engagement</div>
+      <div class="nav-grp" data-grp="programs">
+        <div class="nav-grp-lbl"><span class="ni">🎯</span> Programs <span class="chev">▶</span></div>
+        <div class="nav-items">
+          <div class="nav-item" data-view="competitions"><span class="ni">🎬</span> Competitions</div>
+          <div class="nav-item" data-view="assignments"><span class="ni">📝</span> Assignments</div>
+          <div class="nav-item" data-view="meetings"><span class="ni">📅</span> Meetings</div>
+        </div>
+      </div>
+      <div class="nav-grp admin-only" id="nav-admin-grp" data-grp="admin">
+        <div class="nav-grp-lbl"><span class="ni">🛠️</span> Admin <span class="chev">▶</span></div>
+        <div class="nav-items">
+          <div class="nav-item" data-view="users"><span class="ni">👥</span> Members</div>
+          <div class="nav-item" data-view="planadmin"><span class="ni">🗓️</span> Manage Plan</div>
+          <div class="nav-item" data-view="adminreports"><span class="ni">📊</span> Reports</div>
+          <div class="nav-item" data-view="engagement"><span class="ni">📈</span> Engagement</div>
+        </div>
       </div>
     </nav>
     <div class="sb-bot"><button class="btn-logout" id="btn-logout">Sign Out</button></div>
@@ -531,10 +551,10 @@ tr:not(:last-child) td{border-bottom:1.5px solid var(--border2);}
           <div class="card-h">
             <h3>3D Leaderboard</h3>
             <div style="display:flex;gap:6px;">
-              <button class="btn btn-ghost btn-sm lb-metric-btn active" data-metric="composite">Overall</button>
-              <button class="btn btn-ghost btn-sm lb-metric-btn" data-metric="points">Points</button>
+              <button class="btn btn-ghost btn-sm lb-metric-btn active" data-metric="points">Points</button>
+              <button class="btn btn-ghost btn-sm lb-metric-btn" data-metric="days_present">Days Present</button>
+              <button class="btn btn-ghost btn-sm lb-metric-btn" data-metric="days_missed">Days Missed</button>
               <button class="btn btn-ghost btn-sm lb-metric-btn" data-metric="current_streak">Streak</button>
-              <button class="btn btn-ghost btn-sm lb-metric-btn" data-metric="consistency_pct_30d">Consistency</button>
             </div>
           </div>
           <div id="lb3d-wrap" style="position:relative;width:100%;height:360px;border-radius:var(--r2);overflow:hidden;background:linear-gradient(180deg,#161512,#0B0B0A);">
@@ -894,6 +914,7 @@ function switchView(view){
   $$('.view').forEach(el => el.classList.remove('active'));
   $('#view-' + view)?.classList.add('active');
   closeSidebar();
+  openNavGroupContaining(view);
   const loaders = {
     chat: loadChatUsers, leaderboard: loadLeaderboard, devotional: loadDevotional,
     pledge: loadPledges, competitions: loadCompetitions, assignments: loadAssignments,
@@ -905,6 +926,22 @@ function switchView(view){
   loaders[view]?.();
 }
 $$('.nav-item, .bn-item, .qcard').forEach(el => { if (el.dataset.view) el.onclick = () => switchView(el.dataset.view); });
+
+/* accordion nav groups */
+function openNavGroupContaining(view){
+  const item = document.querySelector(`.nav-item[data-view="${view}"]`);
+  const grp = item?.closest('.nav-grp');
+  if (!grp) return;
+  $$('.nav-grp').forEach(g => g.classList.toggle('open', g === grp));
+}
+$$('.nav-grp-lbl').forEach(lbl => {
+  lbl.addEventListener('click', () => {
+    const grp = lbl.closest('.nav-grp');
+    const wasOpen = grp.classList.contains('open');
+    $$('.nav-grp').forEach(g => g.classList.remove('open'));
+    if (!wasOpen) grp.classList.add('open');
+  });
+});
 
 const hamburger = $('#hamburger'), sidebar = $('#sidebar'), overlay = $('#sidebar-overlay');
 function closeSidebar(){ sidebar.classList.remove('open'); overlay.classList.remove('open'); }
@@ -1312,28 +1349,30 @@ $('#btn-send-distress').onclick = async () => {
 
 /* ───────────── leaderboard ───────────── */
 /* ═══════════════════════════════════════════════════════════
-   LEADERBOARD — multi-metric composite + 3D visualization
+   LEADERBOARD — literal, real-time metrics + glowing 3D line chart.
+   Every number here reads from the same source of truth used in
+   the Full List, so nothing shows two different values for the
+   same thing. No blended/composite scores — just real data:
+   Points, Days Present, Days Missed, Streak.
 ═══════════════════════════════════════════════════════════ */
 let LB_DATA = [];
-let LB_METRIC = 'composite';
-let LB3D = null; // { renderer, scene, camera, bars, angle }
-
-function computeComposite(row){
-  // weighted blend: consistency (40%) + journaled depth (30%) + points normalized (30%)
-  const consistency = row.consistency_pct_30d || 0;
-  const depth = Math.min((row.journaled_count||0) * 4, 100);
-  const pointsNorm = Math.min((row.points||0) / 5, 100);
-  return Math.round(consistency*0.4 + depth*0.3 + pointsNorm*0.3);
-}
+let LB_METRIC = 'points';
+let LB3D = null; // { renderer, scene, camera, lines, angle, clock }
+/* userId -> { presenceDates:Set(all-time), pointsLedger:[{date,pts}](all-time) }
+   "Presence" = attempted at least one devotional question that calendar day,
+   right or wrong. This is the ONLY definition of attendance used here. */
+let LB_TREND_CACHE = {};
+let LB_DEVOTIONALS_SO_FAR = 0; // total devotionals published up to today (the attendance denominator)
+const LB_COLORS = [0xE8CE7A, 0x7AD6E8, 0xE87A9E, 0x8EE87A, 0xC98AE8, 0xE8A97A];
 
 async function loadLeaderboard(){
   const { data } = await sb.from('leaderboard_scores').select('*').order('points',{ascending:false}).limit(50);
   if (!data || !data.length){ $('#lb-list').innerHTML = '<div class="empty">No members yet.</div>'; return; }
 
-  LB_DATA = data.map(r => ({ ...r, composite: computeComposite(r) }));
+  LB_DATA = data;
+  await refreshLeaderboardChart(); // fetch presence data FIRST — list/rank depend on it now
   renderLeaderboardList();
   renderPersonalRankCard();
-  initOrUpdateLeaderboard3D();
 
   $$('.lb-metric-btn').forEach(btn => {
     btn.onclick = () => {
@@ -1341,46 +1380,61 @@ async function loadLeaderboard(){
       btn.classList.add('active');
       LB_METRIC = btn.dataset.metric;
       renderLeaderboardList();
-      updateLeaderboard3DHeights();
+      buildGlowLineChart([...LB_DATA].sort((a,b)=> b.points - a.points).slice(0,6));
+      renderChartLegend([...LB_DATA].sort((a,b)=> b.points - a.points).slice(0,6));
     };
   });
 }
 
+/* single source of truth for every displayed number — same function,
+   same result, whether it's the Full List, the chart, or the legend. */
 function metricValue(row, metric){
-  if (metric === 'composite') return row.composite;
-  if (metric === 'consistency_pct_30d') return row.consistency_pct_30d || 0;
-  return row[metric] || 0;
+  if (metric === 'points') return row.points || 0; // real, from profiles.points directly
+  const cache = LB_TREND_CACHE[row.user_id];
+  const presentDays = cache ? cache.presenceDates.size : 0;
+  if (metric === 'days_present') return presentDays;
+  if (metric === 'days_missed') return Math.max(LB_DEVOTIONALS_SO_FAR - presentDays, 0);
+  if (metric === 'current_streak'){
+    // consecutive days ATTEMPTED, counting back from today — computed live from real dates
+    if (!cache) return 0;
+    let streak = 0, cursor = new Date();
+    while (cache.presenceDates.has(cursor.toISOString().slice(0,10))){ streak++; cursor.setDate(cursor.getDate()-1); }
+    return streak;
+  }
+  return 0;
 }
 function metricLabel(metric){
-  return { composite:'pts (overall)', points:'pts', current_streak:'day streak', consistency_pct_30d:'% consistent' }[metric] || '';
+  return { points:'pts', days_present:'days present', days_missed:'days missed', current_streak:'day streak' }[metric] || '';
 }
 
 function renderLeaderboardList(){
   const sorted = [...LB_DATA].sort((a,b)=> metricValue(b,LB_METRIC) - metricValue(a,LB_METRIC));
-  $('#lb-list').innerHTML = sorted.map((p,i) => `
+  $('#lb-list').innerHTML = sorted.map((p,i) => {
+    const extra = LB_METRIC === 'points'
+      ? ` <span style="color:var(--muted);font-weight:600;">(in ${metricValue(p,'days_present')}d)</span>` : '';
+    return `
     <div class="lb-item" style="${p.user_id===ME.id ? 'outline:2px solid var(--gold);' : ''}">
       <div class="lb-rank ${i===0?'r1':i===1?'r2':i===2?'r3':''}">${i+1}</div>
       <div class="lb-av">${p.avatar_initials || initials(p.full_name)}</div>
       <div class="lb-name">${escapeHtml(p.full_name)}${p.user_id===ME.id?' (you)':''}</div>
-      <div class="lb-score">${metricValue(p,LB_METRIC)} ${metricLabel(LB_METRIC)}</div>
-    </div>`).join('');
+      <div class="lb-score">${metricValue(p,LB_METRIC)} ${metricLabel(LB_METRIC)}${extra}</div>
+    </div>`;
+  }).join('');
 }
 
 function renderPersonalRankCard(){
-  const sorted = [...LB_DATA].sort((a,b)=> b.composite - a.composite);
+  const sorted = [...LB_DATA].sort((a,b)=> b.points - a.points);
   const myIndex = sorted.findIndex(p => p.user_id === ME.id);
   const card = $('#lb-rank-card');
-  if (myIndex === -1){ card.innerHTML = '<div class="empty">Complete a reading to appear on the leaderboard.</div>'; return; }
+  if (myIndex === -1){ card.innerHTML = '<div class="empty">Attempt today\'s devotional to appear on the leaderboard.</div>'; return; }
 
   const me = sorted[myIndex];
   const ahead = sorted[myIndex-1];
   let feedback;
-  if (myIndex === 0) feedback = "You're in first place. Keep your consistency up to stay there.";
+  if (myIndex === 0) feedback = "You're in first place by points. Keep answering daily to stay there.";
   else {
-    const gap = ahead.composite - me.composite;
-    feedback = gap <= 5
-      ? `You're only ${gap} points behind rank #${myIndex}. Read and journal today to close the gap.`
-      : `You're ${gap} points behind rank #${myIndex} (${escapeHtml(ahead.full_name)}). Focus on consistency this week to climb.`;
+    const gap = ahead.points - me.points;
+    feedback = `You're ${gap} point${gap===1?'':'s'} behind rank #${myIndex} (${escapeHtml(ahead.full_name)}). Answer today's devotional quiz to close the gap.`;
   }
   card.innerHTML = `
     <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;">
@@ -1389,80 +1443,197 @@ function renderPersonalRankCard(){
     </div>`;
 }
 
-function initOrUpdateLeaderboard3D(){
-  const wrap = $('#lb3d-wrap'), canvas = $('#lb3d-canvas');
-  if (!wrap || !window.THREE) return;
+/* ── real performance data fetch — ALL-TIME, not windowed.
+   Presence is derived strictly from devotional_responses.created_at,
+   deduplicated to one date per user per day. Attempting = present,
+   regardless of whether the answer was right or wrong. */
+async function fetchTrendData(userIds){
+  const { data: resp } = await sb.from('devotional_responses').select('user_id,created_at,points_awarded').in('user_id', userIds);
+  const today = new Date().toISOString().slice(0,10);
+  const { count: devoCount } = await sb.from('devotionals').select('*',{count:'exact',head:true}).lte('devo_date', today);
+  LB_DEVOTIONALS_SO_FAR = devoCount || 0;
 
-  if (!LB3D){
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(45, wrap.clientWidth/wrap.clientHeight, 0.1, 1000);
-    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-    const dl = new THREE.DirectionalLight(0xE8CE7A, 0.9); dl.position.set(5,10,5); scene.add(dl);
-    LB3D = { renderer, scene, camera, bars: [], angle: 0 };
-
-    function resize(){
-      const w = wrap.clientWidth, h = wrap.clientHeight;
-      renderer.setSize(w,h); camera.aspect = w/h; camera.updateProjectionMatrix();
-    }
-    resize(); window.addEventListener('resize', resize);
-
-    const tooltip = $('#lb3d-tooltip');
-    const raycaster = new THREE.Raycaster();
-    const mouse = new THREE.Vector2();
-    canvas.addEventListener('mousemove', (e) => {
-      const rect = canvas.getBoundingClientRect();
-      mouse.x = ((e.clientX-rect.left)/rect.width)*2-1;
-      mouse.y = -((e.clientY-rect.top)/rect.height)*2+1;
-      raycaster.setFromCamera(mouse, camera);
-      const hits = raycaster.intersectObjects(LB3D.bars.map(b=>b.mesh));
-      if (hits.length){
-        const bar = LB3D.bars.find(b=>b.mesh===hits[0].object);
-        tooltip.style.display='block';
-        tooltip.style.left = e.clientX-rect.left+12+'px';
-        tooltip.style.top = e.clientY-rect.top+'px';
-        tooltip.textContent = `#${bar.rank} ${bar.name} — ${bar.value} ${metricLabel(LB_METRIC)}`;
-      } else tooltip.style.display='none';
-    });
-
-    (function animate(){
-      requestAnimationFrame(animate);
-      LB3D.angle += 0.004;
-      const R = 14;
-      camera.position.set(Math.sin(LB3D.angle)*R, 6, Math.cos(LB3D.angle)*R);
-      camera.lookAt(0,1,0);
-      renderer.render(scene, camera);
-    })();
-  }
-  updateLeaderboard3DHeights();
-}
-
-function updateLeaderboard3DHeights(){
-  if (!LB3D) return;
-  const { scene } = LB3D;
-  LB3D.bars.forEach(b => scene.remove(b.mesh));
-  LB3D.bars = [];
-
-  const top = [...LB_DATA].sort((a,b)=> metricValue(b,LB_METRIC) - metricValue(a,LB_METRIC)).slice(0,10);
-  if (!top.length) return;
-  const maxVal = Math.max(...top.map(p=>metricValue(p,LB_METRIC)), 1);
-  const count = top.length, radius = 6;
-
-  top.forEach((p, i) => {
-    const val = metricValue(p, LB_METRIC);
-    const height = Math.max((val/maxVal)*7, 0.3);
-    const angle = (i/count) * Math.PI * 2;
-    const x = Math.cos(angle)*radius, z = Math.sin(angle)*radius;
-    const isMe = p.user_id === ME.id;
-    const geo = new THREE.BoxGeometry(0.9, height, 0.9);
-    const color = isMe ? 0xE8CE7A : (i===0 ? 0xFFD700 : i<3 ? 0xC6A24D : 0x8A6D22);
-    const mat = new THREE.MeshStandardMaterial({ color, metalness:0.4, roughness:0.35 });
-    const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.set(x, height/2, z);
-    LB3D.scene.add(mesh);
-    LB3D.bars.push({ mesh, rank: i+1, name: p.full_name, value: val });
+  userIds.forEach(id => { LB_TREND_CACHE[id] = { presenceDates: new Set(), pointsLedger: [] }; });
+  (resp||[]).forEach(r => {
+    const day = r.created_at.slice(0,10);
+    LB_TREND_CACHE[r.user_id]?.presenceDates.add(day);
+    LB_TREND_CACHE[r.user_id]?.pointsLedger.push({ date: day, pts: r.points_awarded||0 });
   });
 }
+
+function dayKey(offsetFromToday){
+  const d = new Date(); d.setDate(d.getDate()-offsetFromToday);
+  return d.toISOString().slice(0,10);
+}
+
+/* real 14-point trend for the chart. The final (rightmost) point ALWAYS
+   equals the true current value — so the chart can never disagree with
+   the Full List, even if the underlying activity ledger doesn't
+   perfectly reconstruct history. */
+function seriesForUser(row, metric, days=14){
+  const cache = LB_TREND_CACHE[row.user_id] || { presenceDates:new Set(), pointsLedger:[] };
+  const trueTotal = metricValue(row, metric);
+  const out = [];
+
+  if (metric === 'points'){
+    const ledgerTotalAllTime = cache.pointsLedger.reduce((s,p)=>s+p.pts,0);
+    const scale = ledgerTotalAllTime > 0 ? trueTotal / ledgerTotalAllTime : 0;
+    for (let i=days-1; i>=0; i--){
+      const key = dayKey(i);
+      const cum = cache.pointsLedger.filter(p=>p.date<=key).reduce((s,p)=>s+p.pts,0);
+      out.push(ledgerTotalAllTime > 0 ? Math.round(cum*scale) : (i===0 ? trueTotal : 0));
+    }
+  } else if (metric === 'current_streak'){
+    for (let i=days-1; i>=0; i--){
+      const key = dayKey(i);
+      let streak = 0, cursor = new Date(key);
+      while (cache.presenceDates.has(cursor.toISOString().slice(0,10))){ streak++; cursor.setDate(cursor.getDate()-1); }
+      out.push(streak);
+    }
+  } else if (metric === 'days_present'){
+    for (let i=days-1; i>=0; i--){
+      const key = dayKey(i);
+      let count = 0;
+      cache.presenceDates.forEach(dt => { if (dt <= key) count++; });
+      out.push(count);
+    }
+  } else if (metric === 'days_missed'){
+    for (let i=days-1; i>=0; i--){
+      const key = dayKey(i);
+      let present = 0;
+      cache.presenceDates.forEach(dt => { if (dt <= key) present++; });
+      const devosAsOf = Math.max(LB_DEVOTIONALS_SO_FAR - i, 0);
+      out.push(Math.max(devosAsOf - present, 0));
+    }
+  }
+  return out;
+}
+
+async function refreshLeaderboardChart(){
+  const top = [...LB_DATA].sort((a,b)=> b.points - a.points).slice(0,6);
+  if (!top.length) return;
+  await fetchTrendData(top.map(t=>t.user_id));
+  initLeaderboard3DScene();
+  buildGlowLineChart(top);
+  renderChartLegend(top);
+}
+
+function initLeaderboard3DScene(){
+  const wrap = $('#lb3d-wrap'), canvas = $('#lb3d-canvas');
+  if (!wrap || !window.THREE || LB3D) return;
+
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(42, wrap.clientWidth/wrap.clientHeight, 0.1, 1000);
+  scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+  const dl = new THREE.DirectionalLight(0xE8CE7A, 0.5); dl.position.set(5,10,5); scene.add(dl);
+  LB3D = { renderer, scene, camera, lines: [], angle: 0.6, t: 0 };
+
+  function resize(){
+    const w = wrap.clientWidth, h = wrap.clientHeight;
+    renderer.setSize(w,h); camera.aspect = w/h; camera.updateProjectionMatrix();
+  }
+  resize(); window.addEventListener('resize', resize);
+
+  (function animate(){
+    requestAnimationFrame(animate);
+    LB3D.angle += 0.0025;
+    LB3D.t += 0.03;
+    const centerZ = (LB3D.lines.length ? (LB3D.lines.length-1)*1.7/2 : 0);
+    const R = 13;
+    camera.position.set(Math.sin(LB3D.angle)*R, 5.5, centerZ + Math.cos(LB3D.angle)*R*0.7);
+    camera.lookAt(0, 2, centerZ);
+    LB3D.lines.forEach(l => {
+      const pulse = 0.7 + 0.3*Math.sin(LB3D.t + l.phase);
+      l.glowMat.opacity = 0.18 + 0.14*pulse;
+      l.coreMat.emissiveIntensity = 1.1 + 0.5*pulse;
+    });
+    renderer.render(scene, camera);
+  })();
+}
+
+function buildGlowLineChart(top){
+  if (!LB3D) return;
+  const { scene } = LB3D;
+  LB3D.lines.forEach(l => { scene.remove(l.core); scene.remove(l.glow); l.points.forEach(p=>scene.remove(p)); });
+  LB3D.lines = [];
+
+  const days = 14;
+  const allSeries = top.map(p => seriesForUser(p, LB_METRIC, days));
+  const maxVal = Math.max(...allSeries.flat(), 1);
+
+  top.forEach((p, ui) => {
+    const series = allSeries[ui];
+    const isMe = p.user_id === ME.id;
+    const color = isMe ? 0xE8CE7A : LB_COLORS[ui % LB_COLORS.length];
+    const z = ui * 1.7;
+    const pts = series.map((val, di) => new THREE.Vector3(
+      (di/(days-1))*12 - 6,
+      Math.max((val/maxVal)*4.5, 0.05),
+      z
+    ));
+    const curve = new THREE.CatmullRomCurve3(pts);
+
+    const coreGeo = new THREE.TubeGeometry(curve, 100, isMe?0.045:0.03, 8, false);
+    const coreMat = new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 1.3, roughness:0.3, metalness:0.2 });
+    const core = new THREE.Mesh(coreGeo, coreMat);
+    scene.add(core);
+
+    const glowGeo = new THREE.TubeGeometry(curve, 100, isMe?0.16:0.11, 8, false);
+    const glowMat = new THREE.MeshBasicMaterial({ color, transparent:true, opacity:0.25, blending:THREE.AdditiveBlending, depthWrite:false });
+    const glow = new THREE.Mesh(glowGeo, glowMat);
+    scene.add(glow);
+
+    const endpoints = [];
+    const last = pts[pts.length-1];
+    const sphGeo = new THREE.SphereGeometry(isMe?0.16:0.11, 12, 12);
+    const sphMat = new THREE.MeshBasicMaterial({ color, transparent:true, opacity:0.9, blending:THREE.AdditiveBlending, depthWrite:false });
+    const sph = new THREE.Mesh(sphGeo, sphMat);
+    sph.position.copy(last);
+    scene.add(sph);
+    endpoints.push(sph);
+
+    LB3D.lines.push({ core, glow, coreMat, glowMat, points: endpoints, phase: ui*1.3, name: p.full_name, latest: series[series.length-1] });
+  });
+
+  if (!LB3D.grid){
+    const grid = new THREE.GridHelper(16, 8, 0x8A6D22, 0x2A2A24);
+    grid.position.set(0, 0, (top.length-1)*1.7/2);
+    scene.add(grid);
+    LB3D.grid = grid;
+  } else {
+    LB3D.grid.position.set(0, 0, (top.length-1)*1.7/2);
+  }
+}
+
+function renderChartLegend(top){
+  let legend = $('#lb3d-legend');
+  if (!legend){
+    legend = document.createElement('div');
+    legend.id = 'lb3d-legend';
+    legend.style.cssText = 'display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;';
+    $('#lb3d-wrap').insertAdjacentElement('afterend', legend);
+  }
+  legend.innerHTML = top.map((p, i) => {
+    const color = p.user_id===ME.id ? '#E8CE7A' : '#'+LB_COLORS[i%LB_COLORS.length].toString(16).padStart(6,'0');
+    // exact same value function used by the Full List — guaranteed to match
+    const latest = metricValue(p, LB_METRIC);
+    const series = seriesForUser(p, LB_METRIC, 14);
+    const weekAgo = series[Math.max(series.length-8,0)];
+    const delta = latest - weekAgo;
+    const arrow = delta > 0 ? '▲' : delta < 0 ? '▼' : '—';
+    const arrowColor = delta > 0 ? '#4CAF50' : delta < 0 ? '#C6604D' : 'var(--muted)';
+    const extra = LB_METRIC === 'points' ? ` in ${metricValue(p,'days_present')}d` : '';
+    return `
+      <div style="display:flex;align-items:center;gap:7px;background:var(--paper3);border:1.5px solid var(--border2);border-radius:10px;padding:7px 11px;font-size:12px;">
+        <span style="width:9px;height:9px;border-radius:50%;background:${color};box-shadow:0 0 8px ${color};"></span>
+        <b>${escapeHtml(p.full_name)}${p.user_id===ME.id?' (you)':''}</b>
+        <span style="color:var(--muted);">${latest} ${metricLabel(LB_METRIC)}${extra}</span>
+        <span style="color:${arrowColor};font-weight:800;">${arrow}</span>
+      </div>`;
+  }).join('');
+}
+
 
 /* ═══════════════════════════════════════════════════════════
    CONTENT HUB

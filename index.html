@@ -438,6 +438,12 @@ tr:not(:last-child) td{border-bottom:1.5px solid var(--border2);}
         <div class="nav-item active" data-view="dashboard"><span class="ni">🏠</span> Dashboard</div>
         <div class="nav-item" data-view="chat"><span class="ni">💬</span> Chat</div>
         <div class="nav-item" data-view="leaderboard"><span class="ni">🏆</span> Leaderboard</div>
+        <div class="nav-item" data-view="reading"><span class="ni">📅</span> Reading Plan</div>
+        <div class="nav-item" data-view="journal"><span class="ni">🖋️</span> Journal</div>
+        <div class="nav-item" data-view="prayerwall"><span class="ni">🙏</span> Prayer Wall</div>
+        <div class="nav-item" data-view="content"><span class="ni">🎧</span> Content Hub</div>
+        <div class="nav-item" data-view="badges"><span class="ni">🏅</span> My Badges</div>
+        <div class="nav-item" data-view="reports"><span class="ni">📄</span> My Report</div>
       </div>
       <div class="nav-grp">
         <div class="nav-grp-lbl">The Word</div>
@@ -455,6 +461,9 @@ tr:not(:last-child) td{border-bottom:1.5px solid var(--border2);}
       <div class="nav-grp admin-only" id="nav-admin-grp">
         <div class="nav-grp-lbl">Admin</div>
         <div class="nav-item" data-view="users"><span class="ni">👥</span> Members</div>
+        <div class="nav-item" data-view="planadmin"><span class="ni">🗓️</span> Manage Plan</div>
+        <div class="nav-item" data-view="adminreports"><span class="ni">📊</span> Reports</div>
+        <div class="nav-item" data-view="engagement"><span class="ni">📈</span> Engagement</div>
       </div>
     </nav>
     <div class="sb-bot"><button class="btn-logout" id="btn-logout">Sign Out</button></div>
@@ -514,8 +523,150 @@ tr:not(:last-child) td{border-bottom:1.5px solid var(--border2);}
 
       <!-- LEADERBOARD -->
       <div class="view" id="view-leaderboard">
-        <div class="view-head"><div><h1>Leaderboard</h1><p>Top scholars by points</p></div></div>
-        <div class="card"><div class="lb-list" id="lb-list"><div class="empty">Loading…</div></div></div>
+        <div class="view-head"><div><h1>Leaderboard</h1><p>Ranked by consistency, depth, and points — not just volume</p></div></div>
+
+        <div class="card" id="lb-rank-card"><div class="empty">Loading your rank…</div></div>
+
+        <div class="card">
+          <div class="card-h">
+            <h3>3D Leaderboard</h3>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-ghost btn-sm lb-metric-btn active" data-metric="composite">Overall</button>
+              <button class="btn btn-ghost btn-sm lb-metric-btn" data-metric="points">Points</button>
+              <button class="btn btn-ghost btn-sm lb-metric-btn" data-metric="current_streak">Streak</button>
+              <button class="btn btn-ghost btn-sm lb-metric-btn" data-metric="consistency_pct_30d">Consistency</button>
+            </div>
+          </div>
+          <div id="lb3d-wrap" style="position:relative;width:100%;height:360px;border-radius:var(--r2);overflow:hidden;background:linear-gradient(180deg,#161512,#0B0B0A);">
+            <canvas id="lb3d-canvas" style="width:100%;height:100%;display:block;"></canvas>
+            <div id="lb3d-tooltip" style="position:absolute;pointer-events:none;background:rgba(11,11,10,.9);color:#F3E9C9;padding:6px 10px;border-radius:8px;font-size:11.5px;font-weight:700;display:none;border:1px solid var(--gold3);"></div>
+          </div>
+        </div>
+
+        <div class="card"><div class="card-h"><h3>Full List</h3></div><div class="lb-list" id="lb-list"><div class="empty">Loading…</div></div></div>
+      </div>
+
+      <!-- CONTENT HUB -->
+      <div class="view" id="view-content">
+        <div class="view-head"><div><h1>Content Hub</h1><p>Audio devotionals, scripture search, and cross-references</p></div></div>
+        <div class="card">
+          <div class="card-h"><h3>🔍 Scripture Search</h3></div>
+          <div style="display:flex;gap:10px;">
+            <input id="scripture-search-input" type="text" placeholder="e.g. John 3:16 or Romans 8" style="flex:1;padding:11px 13px;border:1.5px solid var(--border);border-radius:var(--r2);">
+            <button class="btn btn-gold" id="btn-scripture-search">Search</button>
+          </div>
+          <div id="scripture-result" style="margin-top:14px;"></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>🎧 Audio Devotionals</h3></div>
+          <div id="audio-list"><div class="empty">Loading…</div></div>
+        </div>
+      </div>
+
+      <!-- ADMIN: ENGAGEMENT -->
+      <div class="view" id="view-engagement">
+        <div class="view-head"><div><h1>Engagement</h1><p>Who's thriving, who's gone quiet</p></div></div>
+        <div class="card"><div class="user-table-wrap"><table>
+          <thead><tr><th>Member</th><th>Streak</th><th>30d Consistency</th><th>Last Active</th><th>Status</th></tr></thead>
+          <tbody id="engagement-tbody"></tbody>
+        </table></div></div>
+      </div>
+
+      <!-- READING PLAN -->
+      <div class="view" id="view-reading">
+        <div class="view-head"><div><h1>Reading Plan</h1><p>Your yearly journey through Scripture</p></div></div>
+        <div class="card" id="reading-today-card"><div class="empty">Loading…</div></div>
+        <div class="card" id="streak-freeze-card" style="display:none;"></div>
+        <div class="card">
+          <div class="card-h"><h3>🔥 Your Streak</h3></div>
+          <div style="display:flex;gap:24px;align-items:center;flex-wrap:wrap;">
+            <div style="text-align:center;"><div id="streak-current" style="font-size:34px;font-weight:900;color:var(--gold3);">0</div><div class="sc-l">Current streak</div></div>
+            <div style="text-align:center;"><div id="streak-longest" style="font-size:20px;font-weight:800;color:var(--ink);">0</div><div class="sc-l">Longest streak</div></div>
+            <div style="text-align:center;"><div id="streak-freezes" style="font-size:20px;font-weight:800;color:var(--ink);">0</div><div class="sc-l">Freezes left</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>Last 30 Days</h3></div>
+          <div id="reading-heatmap" style="display:grid;grid-template-columns:repeat(10,1fr);gap:6px;"></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>💬 Group Discussion</h3></div>
+          <div id="discussion-list" style="margin-bottom:12px;"><div class="empty">Loading…</div></div>
+          <div style="display:flex;gap:8px;">
+            <input id="discussion-input" type="text" placeholder="Share a thought on today's passage…" style="flex:1;padding:10px 13px;border:1.5px solid var(--border);border-radius:var(--r2);">
+            <button class="btn btn-gold btn-sm" id="btn-discussion-post">Post</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- MY BADGES -->
+      <div class="view" id="view-badges">
+        <div class="view-head"><div><h1>My Badges</h1><p>Milestones earned along the way</p></div></div>
+        <div class="comp-grid" id="badges-grid"><div class="empty">Loading…</div></div>
+      </div>
+
+      <!-- JOURNAL -->
+      <div class="view" id="view-journal">
+        <div class="view-head">
+          <div><h1>Journal</h1><p>SOAP-method reflections, private by default</p></div>
+          <button class="btn btn-gold btn-sm" id="btn-new-journal">+ New Entry</button>
+        </div>
+        <div id="journal-list"><div class="empty">Loading…</div></div>
+      </div>
+
+      <!-- PRAYER WALL -->
+      <div class="view" id="view-prayerwall">
+        <div class="view-head"><div><h1>Prayer Wall</h1><p>Share requests, pray for one another</p></div></div>
+        <div class="card">
+          <div class="card-h"><h3>Share a request</h3></div>
+          <div class="fg"><textarea id="prayer-input" placeholder="What's on your heart?"></textarea></div>
+          <div class="fg" style="display:flex;align-items:center;gap:8px;"><input type="checkbox" id="prayer-anon" style="width:auto;"> Post anonymously</div>
+          <button class="btn btn-gold" id="btn-prayer-post">Post to Wall</button>
+        </div>
+        <div id="prayer-list"><div class="empty">Loading…</div></div>
+      </div>
+
+      <!-- MY REPORT -->
+      <div class="view" id="view-reports">
+        <div class="view-head"><div><h1>My Report</h1><p>Your progress, beautifully summarized</p></div></div>
+        <div class="card">
+          <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px;">Generates a PDF covering your streak, consistency, journal activity, and rank.</p>
+          <button class="btn btn-primary" id="btn-generate-report" style="max-width:260px;margin-bottom:10px;">📄 Download My PDF Report</button>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>🎉 Year in Review</h3></div>
+          <p style="color:var(--muted);font-size:13.5px;margin-bottom:14px;">A festive wrap-up of your whole year — like a highlight reel of your walk through Scripture.</p>
+          <button class="btn btn-gold" id="btn-year-review" style="max-width:260px;">✨ Generate Year in Review</button>
+        </div>
+      </div>
+
+      <!-- ADMIN: MANAGE PLAN -->
+      <div class="view" id="view-planadmin">
+        <div class="view-head"><div><h1>Manage Reading Plan</h1><p>Add today's reading assignment</p></div></div>
+        <div class="card">
+          <div class="two-col">
+            <div class="fg"><label>Date</label><input type="date" id="pd-date"></div>
+            <div class="fg"><label>Day Number</label><input type="number" id="pd-daynum" placeholder="e.g. 1"></div>
+          </div>
+          <div class="fg"><label>Scripture Reference</label><input type="text" id="pd-ref" placeholder="e.g. Genesis 1-3"></div>
+          <div class="fg"><label>Audio URL (optional)</label><input type="text" id="pd-audio" placeholder="https://..."></div>
+          <button class="btn btn-gold" id="btn-add-plan-day">Add Reading Day</button>
+        </div>
+        <div class="card"><div class="card-h"><h3>Upcoming Days</h3></div><div id="planadmin-list"><div class="empty">Loading…</div></div></div>
+      </div>
+
+      <!-- ADMIN: REPORTS -->
+      <div class="view" id="view-adminreports">
+        <div class="view-head"><div><h1>Reports</h1><p>Generate individual or collective PDF reports</p></div></div>
+        <div class="card">
+          <div class="card-h"><h3>Collective Report</h3></div>
+          <p style="color:var(--muted);font-size:13px;margin-bottom:12px;">One PDF covering every approved member's progress.</p>
+          <button class="btn btn-dark btn-sm" id="btn-collective-report">📊 Generate Collective PDF</button>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>Individual Reports</h3></div>
+          <div id="adminreports-list"><div class="empty">Loading…</div></div>
+        </div>
       </div>
 
       <!-- DEVOTIONAL -->
@@ -626,6 +777,8 @@ tr:not(:last-child) td{border-bottom:1.5px solid var(--border2);}
 <audio id="alert-sound" preload="auto" src="https://cdn.jsdelivr.net/gh/naomiaro/notification-sounds@master/notification.mp3"></audio>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════════
    CONFIG — replace with your real Supabase project values
@@ -744,7 +897,10 @@ function switchView(view){
   const loaders = {
     chat: loadChatUsers, leaderboard: loadLeaderboard, devotional: loadDevotional,
     pledge: loadPledges, competitions: loadCompetitions, assignments: loadAssignments,
-    meetings: loadMeetings, talk: loadTalks, distress: loadDistress, users: loadUsers
+    meetings: loadMeetings, talk: loadTalks, distress: loadDistress, users: loadUsers,
+    reading: loadReadingPlan, journal: loadJournal, prayerwall: loadPrayerWall,
+    reports: loadReportsView, planadmin: loadPlanAdmin, adminreports: loadAdminReports,
+    content: loadContentHub, engagement: loadEngagement, badges: loadBadgesView
   };
   loaders[view]?.();
 }
@@ -1155,17 +1311,220 @@ $('#btn-send-distress').onclick = async () => {
 };
 
 /* ───────────── leaderboard ───────────── */
+/* ═══════════════════════════════════════════════════════════
+   LEADERBOARD — multi-metric composite + 3D visualization
+═══════════════════════════════════════════════════════════ */
+let LB_DATA = [];
+let LB_METRIC = 'composite';
+let LB3D = null; // { renderer, scene, camera, bars, angle }
+
+function computeComposite(row){
+  // weighted blend: consistency (40%) + journaled depth (30%) + points normalized (30%)
+  const consistency = row.consistency_pct_30d || 0;
+  const depth = Math.min((row.journaled_count||0) * 4, 100);
+  const pointsNorm = Math.min((row.points||0) / 5, 100);
+  return Math.round(consistency*0.4 + depth*0.3 + pointsNorm*0.3);
+}
+
 async function loadLeaderboard(){
-  const c = $('#lb-list');
-  const { data } = await sb.from('profiles').select('*').eq('status','approved').order('points',{ascending:false}).limit(50);
-  if (!data || !data.length) { c.innerHTML = '<div class="empty">No members yet.</div>'; return; }
-  c.innerHTML = data.map((p,i) => `
-    <div class="lb-item">
+  const { data } = await sb.from('leaderboard_scores').select('*').order('points',{ascending:false}).limit(50);
+  if (!data || !data.length){ $('#lb-list').innerHTML = '<div class="empty">No members yet.</div>'; return; }
+
+  LB_DATA = data.map(r => ({ ...r, composite: computeComposite(r) }));
+  renderLeaderboardList();
+  renderPersonalRankCard();
+  initOrUpdateLeaderboard3D();
+
+  $$('.lb-metric-btn').forEach(btn => {
+    btn.onclick = () => {
+      $$('.lb-metric-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      LB_METRIC = btn.dataset.metric;
+      renderLeaderboardList();
+      updateLeaderboard3DHeights();
+    };
+  });
+}
+
+function metricValue(row, metric){
+  if (metric === 'composite') return row.composite;
+  if (metric === 'consistency_pct_30d') return row.consistency_pct_30d || 0;
+  return row[metric] || 0;
+}
+function metricLabel(metric){
+  return { composite:'pts (overall)', points:'pts', current_streak:'day streak', consistency_pct_30d:'% consistent' }[metric] || '';
+}
+
+function renderLeaderboardList(){
+  const sorted = [...LB_DATA].sort((a,b)=> metricValue(b,LB_METRIC) - metricValue(a,LB_METRIC));
+  $('#lb-list').innerHTML = sorted.map((p,i) => `
+    <div class="lb-item" style="${p.user_id===ME.id ? 'outline:2px solid var(--gold);' : ''}">
       <div class="lb-rank ${i===0?'r1':i===1?'r2':i===2?'r3':''}">${i+1}</div>
       <div class="lb-av">${p.avatar_initials || initials(p.full_name)}</div>
-      <div class="lb-name">${escapeHtml(p.full_name)}</div>
-      <div class="lb-score">${p.points} pts</div>
+      <div class="lb-name">${escapeHtml(p.full_name)}${p.user_id===ME.id?' (you)':''}</div>
+      <div class="lb-score">${metricValue(p,LB_METRIC)} ${metricLabel(LB_METRIC)}</div>
     </div>`).join('');
+}
+
+function renderPersonalRankCard(){
+  const sorted = [...LB_DATA].sort((a,b)=> b.composite - a.composite);
+  const myIndex = sorted.findIndex(p => p.user_id === ME.id);
+  const card = $('#lb-rank-card');
+  if (myIndex === -1){ card.innerHTML = '<div class="empty">Complete a reading to appear on the leaderboard.</div>'; return; }
+
+  const me = sorted[myIndex];
+  const ahead = sorted[myIndex-1];
+  let feedback;
+  if (myIndex === 0) feedback = "You're in first place. Keep your consistency up to stay there.";
+  else {
+    const gap = ahead.composite - me.composite;
+    feedback = gap <= 5
+      ? `You're only ${gap} points behind rank #${myIndex}. Read and journal today to close the gap.`
+      : `You're ${gap} points behind rank #${myIndex} (${escapeHtml(ahead.full_name)}). Focus on consistency this week to climb.`;
+  }
+  card.innerHTML = `
+    <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;">
+      <div style="text-align:center;"><div style="font-size:30px;font-weight:900;color:var(--gold3);">#${myIndex+1}</div><div class="sc-l">Your rank</div></div>
+      <div style="flex:1;min-width:220px;"><p style="font-size:13.5px;color:var(--text);">${feedback}</p></div>
+    </div>`;
+}
+
+function initOrUpdateLeaderboard3D(){
+  const wrap = $('#lb3d-wrap'), canvas = $('#lb3d-canvas');
+  if (!wrap || !window.THREE) return;
+
+  if (!LB3D){
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, wrap.clientWidth/wrap.clientHeight, 0.1, 1000);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+    const dl = new THREE.DirectionalLight(0xE8CE7A, 0.9); dl.position.set(5,10,5); scene.add(dl);
+    LB3D = { renderer, scene, camera, bars: [], angle: 0 };
+
+    function resize(){
+      const w = wrap.clientWidth, h = wrap.clientHeight;
+      renderer.setSize(w,h); camera.aspect = w/h; camera.updateProjectionMatrix();
+    }
+    resize(); window.addEventListener('resize', resize);
+
+    const tooltip = $('#lb3d-tooltip');
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      mouse.x = ((e.clientX-rect.left)/rect.width)*2-1;
+      mouse.y = -((e.clientY-rect.top)/rect.height)*2+1;
+      raycaster.setFromCamera(mouse, camera);
+      const hits = raycaster.intersectObjects(LB3D.bars.map(b=>b.mesh));
+      if (hits.length){
+        const bar = LB3D.bars.find(b=>b.mesh===hits[0].object);
+        tooltip.style.display='block';
+        tooltip.style.left = e.clientX-rect.left+12+'px';
+        tooltip.style.top = e.clientY-rect.top+'px';
+        tooltip.textContent = `#${bar.rank} ${bar.name} — ${bar.value} ${metricLabel(LB_METRIC)}`;
+      } else tooltip.style.display='none';
+    });
+
+    (function animate(){
+      requestAnimationFrame(animate);
+      LB3D.angle += 0.004;
+      const R = 14;
+      camera.position.set(Math.sin(LB3D.angle)*R, 6, Math.cos(LB3D.angle)*R);
+      camera.lookAt(0,1,0);
+      renderer.render(scene, camera);
+    })();
+  }
+  updateLeaderboard3DHeights();
+}
+
+function updateLeaderboard3DHeights(){
+  if (!LB3D) return;
+  const { scene } = LB3D;
+  LB3D.bars.forEach(b => scene.remove(b.mesh));
+  LB3D.bars = [];
+
+  const top = [...LB_DATA].sort((a,b)=> metricValue(b,LB_METRIC) - metricValue(a,LB_METRIC)).slice(0,10);
+  if (!top.length) return;
+  const maxVal = Math.max(...top.map(p=>metricValue(p,LB_METRIC)), 1);
+  const count = top.length, radius = 6;
+
+  top.forEach((p, i) => {
+    const val = metricValue(p, LB_METRIC);
+    const height = Math.max((val/maxVal)*7, 0.3);
+    const angle = (i/count) * Math.PI * 2;
+    const x = Math.cos(angle)*radius, z = Math.sin(angle)*radius;
+    const isMe = p.user_id === ME.id;
+    const geo = new THREE.BoxGeometry(0.9, height, 0.9);
+    const color = isMe ? 0xE8CE7A : (i===0 ? 0xFFD700 : i<3 ? 0xC6A24D : 0x8A6D22);
+    const mat = new THREE.MeshStandardMaterial({ color, metalness:0.4, roughness:0.35 });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(x, height/2, z);
+    LB3D.scene.add(mesh);
+    LB3D.bars.push({ mesh, rank: i+1, name: p.full_name, value: val });
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CONTENT HUB
+═══════════════════════════════════════════════════════════ */
+async function loadContentHub(){
+  const { data } = await sb.from('reading_plan_days').select('*').not('audio_url','is',null).order('plan_date',{ascending:false}).limit(30);
+  const c = $('#audio-list');
+  if (!data || !data.length){ c.innerHTML = '<div class="empty">No audio devotionals uploaded yet.</div>'; return; }
+  c.innerHTML = data.map(d => `
+    <div style="margin-bottom:14px;">
+      <p style="font-size:13px;font-weight:700;margin-bottom:6px;">Day ${d.day_number} — ${escapeHtml(d.reference)}</p>
+      <audio controls style="width:100%;" src="${escapeHtml(d.audio_url)}"></audio>
+    </div>`).join('');
+}
+$('#btn-scripture-search')?.addEventListener('click', async () => {
+  const ref = $('#scripture-search-input').value.trim();
+  const box = $('#scripture-result');
+  if (!ref) return;
+  box.innerHTML = '<div class="empty">Searching…</div>';
+  try {
+    const res = await fetch(`https://bible-api.com/${encodeURIComponent(ref)}`);
+    const json = await res.json();
+    if (json.error) { box.innerHTML = `<div class="empty">${escapeHtml(json.error)}</div>`; return; }
+    box.innerHTML = `
+      <div class="devo-verse-box">
+        <div class="devo-verse-ref">${escapeHtml(json.reference)}</div>
+        <div class="devo-verse-text">${escapeHtml(json.text.trim())}</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="btn-bookmark-verse">🔖 Bookmark</button>`;
+    $('#btn-bookmark-verse').onclick = async () => {
+      await sb.from('bookmarks').insert({ user_id: ME.id, scripture_ref: json.reference, note: json.text.trim() });
+      alert('Bookmarked.');
+    };
+  } catch(e){
+    box.innerHTML = '<div class="empty">Could not reach scripture lookup service. Check your connection.</div>';
+  }
+});
+
+/* ═══════════════════════════════════════════════════════════
+   ADMIN: ENGAGEMENT DASHBOARD
+═══════════════════════════════════════════════════════════ */
+async function loadEngagement(){
+  const { data } = await sb.from('leaderboard_scores').select('*').order('consistency_pct_30d',{ascending:true});
+  const { data: profiles } = await sb.from('profiles').select('id,last_active_date').eq('status','approved');
+  const lastActiveMap = Object.fromEntries((profiles||[]).map(p=>[p.id,p.last_active_date]));
+  const tbody = $('#engagement-tbody');
+  if (!data || !data.length){ tbody.innerHTML = '<tr><td colspan="5" class="empty">No data yet.</td></tr>'; return; }
+
+  const today = new Date();
+  tbody.innerHTML = data.map(p => {
+    const lastActive = lastActiveMap[p.user_id];
+    const daysSince = lastActive ? Math.floor((today - new Date(lastActive))/86400000) : null;
+    const isQuiet = daysSince === null || daysSince >= 3;
+    return `
+      <tr style="${isQuiet ? 'background:var(--red-l);' : ''}">
+        <td>${escapeHtml(p.full_name)}</td>
+        <td>${p.current_streak||0}d</td>
+        <td>${p.consistency_pct_30d||0}%</td>
+        <td>${lastActive || 'Never'}</td>
+        <td>${isQuiet ? '<span class="badge b-rejected">Needs follow-up</span>' : '<span class="badge b-approved">Active</span>'}</td>
+      </tr>`;
+  }).join('');
 }
 
 /* ───────────── users (admin) ───────────── */
@@ -1251,6 +1610,446 @@ $('#modal-overlay').addEventListener('click', e => { if (e.target.id === 'modal-
 function escapeHtml(str=''){
   return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
+
+/* ═══════════════════════════════════════════════════════════
+   READING PLAN + STREAKS
+═══════════════════════════════════════════════════════════ */
+async function loadReadingPlan(){
+  const today = new Date().toISOString().slice(0,10);
+  const card = $('#reading-today-card');
+  const { data: day } = await sb.from('reading_plan_days').select('*').eq('plan_date', today).maybeSingle();
+
+  if (!day){
+    card.innerHTML = `<div class="empty">No reading assigned for today yet. Check back soon.</div>`;
+  } else {
+    const { data: done } = await sb.from('reading_progress').select('id').eq('user_id', ME.id).eq('plan_day_id', day.id).maybeSingle();
+    card.innerHTML = `
+      <div class="devo-verse-box">
+        <div class="devo-verse-ref">Day ${day.day_number}</div>
+        <div class="devo-verse-text">${escapeHtml(day.reference)}</div>
+      </div>
+      ${day.audio_url ? `<audio controls style="width:100%;margin-bottom:14px;" src="${escapeHtml(day.audio_url)}"></audio>` : ''}
+      ${done
+        ? `<div class="devo-already">✓ Marked complete for today</div>`
+        : `<button class="btn btn-primary" id="btn-mark-complete">Mark Today's Reading Complete</button>`}
+    `;
+    $('#btn-mark-complete')?.addEventListener('click', () => markReadingComplete(day.id));
+  }
+
+  await refreshStreakDisplay();
+  await renderReadingHeatmap();
+  await renderStreakFreezeOffer();
+  await loadDiscussion(day?.id);
+}
+
+/* streak freeze: offer to save streak if exactly one day was missed */
+async function renderStreakFreezeOffer(){
+  const card = $('#streak-freeze-card');
+  const { data: rows } = await sb.from('reading_progress').select('completed_at').eq('user_id', ME.id).order('completed_at',{ascending:false}).limit(1);
+  const { data: profile } = await sb.from('profiles').select('streak_freezes_available').eq('id', ME.id).single();
+  if (!rows || !rows.length || !profile || profile.streak_freezes_available <= 0){ card.style.display='none'; return; }
+
+  const lastDate = rows[0].completed_at.slice(0,10);
+  const yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
+  const yStr = yesterday.toISOString().slice(0,10);
+  const today = new Date().toISOString().slice(0,10);
+
+  // gap: last read was 2+ days ago (missed yesterday), streak would otherwise break
+  if (lastDate < yStr && lastDate !== today){
+    card.style.display = 'block';
+    card.innerHTML = `
+      <div class="card-h"><h3>🧊 Save Your Streak?</h3></div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:10px;">Looks like you missed a day. Use one of your streak freezes to keep your streak alive.</p>
+      <button class="btn btn-gold btn-sm" id="btn-use-freeze">Use a Freeze (${profile.streak_freezes_available} left)</button>`;
+    $('#btn-use-freeze').onclick = () => useStreakFreeze(yStr);
+  } else card.style.display = 'none';
+}
+
+async function useStreakFreeze(missedDate){
+  const { error } = await sb.from('streak_freezes_log').insert({ user_id: ME.id, used_on: missedDate });
+  if (error){ alert(error.message); return; }
+  const { data: profile } = await sb.from('profiles').select('streak_freezes_available,streak_freezes_used_this_month').eq('id', ME.id).single();
+  await sb.from('profiles').update({
+    streak_freezes_available: Math.max((profile.streak_freezes_available||1)-1, 0),
+    streak_freezes_used_this_month: (profile.streak_freezes_used_this_month||0)+1
+  }).eq('id', ME.id);
+  await recalculateStreakWithFreezes();
+  loadReadingPlan();
+}
+
+async function recalculateStreakWithFreezes(){
+  const { data: rows } = await sb.from('reading_progress').select('completed_at').eq('user_id', ME.id);
+  const { data: freezes } = await sb.from('streak_freezes_log').select('used_on').eq('user_id', ME.id);
+  const dateSet = new Set([
+    ...(rows||[]).map(r => r.completed_at.slice(0,10)),
+    ...(freezes||[]).map(f => f.used_on)
+  ]);
+  let streak = 0;
+  let cursor = new Date();
+  if (!dateSet.has(cursor.toISOString().slice(0,10))) cursor.setDate(cursor.getDate()-1);
+  while (dateSet.has(cursor.toISOString().slice(0,10))){ streak++; cursor.setDate(cursor.getDate()-1); }
+  const { data: profile } = await sb.from('profiles').select('longest_streak').eq('id', ME.id).single();
+  const longest = Math.max(streak, profile?.longest_streak || 0);
+  await sb.from('profiles').update({ current_streak: streak, longest_streak: longest }).eq('id', ME.id);
+  PROFILE.current_streak = streak; PROFILE.longest_streak = longest;
+}
+
+/* passage-level group discussion (requires migration 002 — discussion_comments table) */
+async function loadDiscussion(planDayId){
+  const list = $('#discussion-list');
+  if (!planDayId){ list.innerHTML = '<div class="empty">No reading assigned today — nothing to discuss yet.</div>'; return; }
+  const { data, error } = await sb.from('discussion_comments').select('*, profiles(full_name,avatar_initials)').eq('plan_day_id', planDayId).order('created_at',{ascending:true});
+  if (error){ list.innerHTML = '<div class="empty">Discussion isn\'t set up yet — run migration 002 to enable it.</div>'; return; }
+  if (!data || !data.length){ list.innerHTML = '<div class="empty">No comments yet. Start the conversation.</div>'; return; }
+  list.innerHTML = data.map(c => `
+    <div style="display:flex;gap:9px;padding:8px 0;border-bottom:1px solid var(--border2);">
+      <div class="lb-av" style="flex-shrink:0;">${c.profiles?.avatar_initials || initials(c.profiles?.full_name||'?')}</div>
+      <div><div style="font-size:12.5px;font-weight:700;">${escapeHtml(c.profiles?.full_name||'Member')}</div>
+      <div style="font-size:13px;">${escapeHtml(c.content)}</div>
+      <div style="font-size:10.5px;color:var(--muted);">${timeAgo(c.created_at)}</div></div>
+    </div>`).join('');
+}
+$('#btn-discussion-post')?.addEventListener('click', async () => {
+  const input = $('#discussion-input');
+  const content = input.value.trim();
+  if (!content) return;
+  const today = new Date().toISOString().slice(0,10);
+  const { data: day } = await sb.from('reading_plan_days').select('id').eq('plan_date', today).maybeSingle();
+  if (!day){ alert('No reading assigned today.'); return; }
+  const { error } = await sb.from('discussion_comments').insert({ plan_day_id: day.id, user_id: ME.id, content });
+  if (error){ alert('Discussion isn\'t set up yet — run migration 002 to enable it.'); return; }
+  input.value = '';
+  loadDiscussion(day.id);
+});
+
+async function markReadingComplete(planDayId){
+  const { error } = await sb.from('reading_progress').insert({ user_id: ME.id, plan_day_id: planDayId });
+  if (error){ alert(error.message); return; }
+  await recalculateStreakWithFreezes();
+  await checkAndAwardStreakBadges();
+  loadReadingPlan();
+}
+
+async function recalculateStreak(){
+  const { data: rows } = await sb.from('reading_progress')
+    .select('completed_at')
+    .eq('user_id', ME.id)
+    .order('completed_at', { ascending: false });
+  if (!rows || !rows.length) return;
+
+  const dateSet = new Set(rows.map(r => r.completed_at.slice(0,10)));
+  let streak = 0;
+  let cursor = new Date();
+  // today counts if present; otherwise start counting from yesterday
+  if (!dateSet.has(cursor.toISOString().slice(0,10))) cursor.setDate(cursor.getDate()-1);
+  while (dateSet.has(cursor.toISOString().slice(0,10))){
+    streak++;
+    cursor.setDate(cursor.getDate()-1);
+  }
+  const longest = Math.max(streak, PROFILE.longest_streak || 0);
+  await sb.from('profiles').update({
+    current_streak: streak, longest_streak: longest, last_active_date: new Date().toISOString().slice(0,10)
+  }).eq('id', ME.id);
+  PROFILE.current_streak = streak; PROFILE.longest_streak = longest;
+}
+
+async function refreshStreakDisplay(){
+  const { data } = await sb.from('profiles').select('current_streak,longest_streak,streak_freezes_available').eq('id', ME.id).single();
+  if (!data) return;
+  $('#streak-current').textContent = data.current_streak || 0;
+  $('#streak-longest').textContent = data.longest_streak || 0;
+  $('#streak-freezes').textContent = data.streak_freezes_available ?? 0;
+}
+
+async function renderReadingHeatmap(){
+  const since = new Date(); since.setDate(since.getDate()-29);
+  const { data } = await sb.from('reading_progress').select('completed_at').eq('user_id', ME.id).gte('completed_at', since.toISOString());
+  const doneDates = new Set((data||[]).map(r => r.completed_at.slice(0,10)));
+  const grid = $('#reading-heatmap'); grid.innerHTML = '';
+  for (let i=29;i>=0;i--){
+    const d = new Date(); d.setDate(d.getDate()-i);
+    const key = d.toISOString().slice(0,10);
+    const on = doneDates.has(key);
+    const cell = document.createElement('div');
+    cell.title = key;
+    cell.style.cssText = `aspect-ratio:1;border-radius:6px;background:${on ? 'var(--gold-grad2)' : 'var(--paper3)'};border:1px solid var(--border2);`;
+    grid.appendChild(cell);
+  }
+}
+
+async function checkAndAwardStreakBadges(){
+  const streak = PROFILE.current_streak || 0;
+  const milestones = [[7,'streak_7'],[30,'streak_30'],[100,'streak_100']];
+  for (const [n, code] of milestones){
+    if (streak >= n){
+      const { data: badge } = await sb.from('badges').select('id').eq('code', code).maybeSingle();
+      if (badge) await sb.from('user_badges').insert({ user_id: ME.id, badge_id: badge.id }).select().then(()=>{}, ()=>{}); // ignore unique conflict
+    }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   JOURNAL (SOAP method)
+═══════════════════════════════════════════════════════════ */
+async function loadJournal(){
+  const { data } = await sb.from('journal_entries').select('*').eq('user_id', ME.id).order('entry_date',{ascending:false});
+  const c = $('#journal-list');
+  if (!data || !data.length){ c.innerHTML = '<div class="empty">No journal entries yet. Start reflecting on today\'s reading.</div>'; return; }
+  c.innerHTML = data.map(e => `
+    <div class="card">
+      <div class="card-h"><h3>${escapeHtml(e.title || e.scripture_ref || 'Untitled')}</h3><span class="badge ${e.is_public?'b-approved':'b-pending'}">${e.is_public?'Public':'Private'}</span></div>
+      <p style="font-size:11.5px;color:var(--muted);margin-bottom:10px;">${e.entry_date}${e.scripture_ref ? ' · '+escapeHtml(e.scripture_ref) : ''}</p>
+      ${e.soap_scripture ? `<p style="font-size:13px;margin-bottom:6px;"><b>S:</b> ${escapeHtml(e.soap_scripture)}</p>` : ''}
+      ${e.soap_observation ? `<p style="font-size:13px;margin-bottom:6px;"><b>O:</b> ${escapeHtml(e.soap_observation)}</p>` : ''}
+      ${e.soap_application ? `<p style="font-size:13px;margin-bottom:6px;"><b>A:</b> ${escapeHtml(e.soap_application)}</p>` : ''}
+      ${e.soap_prayer ? `<p style="font-size:13px;margin-bottom:6px;"><b>P:</b> ${escapeHtml(e.soap_prayer)}</p>` : ''}
+    </div>`).join('');
+}
+$('#btn-new-journal')?.addEventListener('click', () => {
+  openModal('New Journal Entry', `
+    <div class="fg"><label>Scripture Reference</label><input id="j-ref" placeholder="e.g. Psalm 23"></div>
+    <div class="fg"><label>Title</label><input id="j-title" placeholder="Optional"></div>
+    <div class="fg"><label>S — Scripture</label><textarea id="j-s"></textarea></div>
+    <div class="fg"><label>O — Observation</label><textarea id="j-o"></textarea></div>
+    <div class="fg"><label>A — Application</label><textarea id="j-a"></textarea></div>
+    <div class="fg"><label>P — Prayer</label><textarea id="j-p"></textarea></div>
+    <div class="fg" style="display:flex;align-items:center;gap:8px;"><input type="checkbox" id="j-public" style="width:auto;"> Make public to group</div>
+  `, async () => {
+    const { error } = await sb.from('journal_entries').insert({
+      user_id: ME.id, scripture_ref: $('#j-ref').value, title: $('#j-title').value,
+      soap_scripture: $('#j-s').value, soap_observation: $('#j-o').value,
+      soap_application: $('#j-a').value, soap_prayer: $('#j-p').value,
+      is_public: $('#j-public').checked
+    });
+    if (error){ alert(error.message); return; }
+    await sb.from('reading_progress').update({ journaled: true }).eq('user_id', ME.id).gte('completed_at', new Date().toISOString().slice(0,10));
+    closeModal(); loadJournal();
+  });
+});
+
+/* ═══════════════════════════════════════════════════════════
+   PRAYER WALL
+═══════════════════════════════════════════════════════════ */
+async function loadPrayerWall(){
+  const { data } = await sb.from('prayer_wall_posts').select('*').order('created_at',{ascending:false}).limit(50);
+  const c = $('#prayer-list');
+  if (!data || !data.length){ c.innerHTML = '<div class="empty">No prayer requests yet.</div>'; return; }
+  c.innerHTML = '';
+  for (const p of data){
+    const { count } = await sb.from('prayer_wall_prayers').select('*',{count:'exact',head:true}).eq('post_id', p.id);
+    const div = document.createElement('div');
+    div.className = 'card';
+    div.innerHTML = `
+      <div class="di-meta">${p.is_anonymous ? 'Anonymous' : 'Member'} · ${timeAgo(p.created_at)} ${p.is_answered ? '· <span class="badge b-approved">Answered 🎉</span>' : ''}</div>
+      <p style="font-size:13.5px;margin-bottom:10px;">${escapeHtml(p.content)}</p>
+      <button class="btn btn-ghost btn-sm" data-post="${p.id}">🙏 Praying (${count||0})</button>
+    `;
+    div.querySelector('button').onclick = async (e) => {
+      await sb.from('prayer_wall_prayers').insert({ post_id: p.id, user_id: ME.id }).select().then(()=>{}, ()=>{});
+      loadPrayerWall();
+    };
+    c.appendChild(div);
+  }
+}
+$('#btn-prayer-post')?.addEventListener('click', async () => {
+  const content = $('#prayer-input').value.trim();
+  if (!content) return;
+  const { error } = await sb.from('prayer_wall_posts').insert({ user_id: ME.id, content, is_anonymous: $('#prayer-anon').checked });
+  if (error){ alert(error.message); return; }
+  $('#prayer-input').value=''; $('#prayer-anon').checked=false;
+  loadPrayerWall();
+});
+
+/* ═══════════════════════════════════════════════════════════
+   PDF REPORTS (personal + admin)
+═══════════════════════════════════════════════════════════ */
+async function buildUserReportPdf(profile){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const gold = [198,162,77], ink = [11,11,10];
+
+  doc.setFillColor(...ink); doc.rect(0,0,210,38,'F');
+  doc.setTextColor(...gold); doc.setFont('times','bold'); doc.setFontSize(20);
+  doc.text('WRTB — We Read The Bible', 14, 18);
+  doc.setFontSize(11); doc.setTextColor(240,235,215);
+  doc.text('Individual Progress Report', 14, 27);
+
+  doc.setTextColor(20,20,20); doc.setFont('helvetica','normal'); doc.setFontSize(12);
+  let y = 52;
+  doc.setFont('helvetica','bold'); doc.text(profile.full_name || 'Member', 14, y); y+=8;
+  doc.setFont('helvetica','normal'); doc.setFontSize(10);
+  doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, y); y+=12;
+
+  const { data: prog } = await sb.from('reading_progress').select('completed_at,journaled').eq('user_id', profile.id);
+  const { data: journals } = await sb.from('journal_entries').select('id').eq('user_id', profile.id);
+  const totalReads = prog?.length || 0;
+  const journaledCount = prog?.filter(p=>p.journaled).length || 0;
+
+  const rows = [
+    ['Current Streak', `${profile.current_streak||0} days`],
+    ['Longest Streak', `${profile.longest_streak||0} days`],
+    ['Total Days Read', `${totalReads}`],
+    ['Journal Entries', `${journals?.length||0}`],
+    ['Days Journaled', `${journaledCount}`],
+    ['Points', `${profile.points||0}`],
+  ];
+  doc.setFontSize(11);
+  rows.forEach(([label,val]) => {
+    doc.setFont('helvetica','bold'); doc.text(label, 14, y);
+    doc.setFont('helvetica','normal'); doc.text(String(val), 90, y);
+    y += 9;
+  });
+
+  y += 6;
+  doc.setDrawColor(...gold); doc.line(14,y,196,y); y+=10;
+  doc.setFont('helvetica','italic'); doc.setFontSize(10); doc.setTextColor(100,100,100);
+  const feedback = profile.current_streak >= 7
+    ? "You're building real consistency — keep the momentum going."
+    : "A short streak is still a start. Read today to build back your rhythm.";
+  doc.text(feedback, 14, y, { maxWidth: 180 });
+
+  return doc;
+}
+
+async function loadReportsView(){ /* static view, nothing to load */ }
+$('#btn-generate-report')?.addEventListener('click', async () => {
+  const doc = await buildUserReportPdf(PROFILE);
+  doc.save(`WRTB-Report-${PROFILE.full_name?.replace(/\s+/g,'_')||'me'}.pdf`);
+});
+
+/* ═══════════════════════════════════════════════════════════
+   MY BADGES
+═══════════════════════════════════════════════════════════ */
+async function loadBadgesView(){
+  const { data: allBadges } = await sb.from('badges').select('*');
+  const { data: mine } = await sb.from('user_badges').select('badge_id,earned_at').eq('user_id', ME.id);
+  const earnedMap = Object.fromEntries((mine||[]).map(b => [b.badge_id, b.earned_at]));
+  const grid = $('#badges-grid');
+  if (!allBadges || !allBadges.length){ grid.innerHTML = '<div class="empty">No badges configured yet.</div>'; return; }
+  grid.innerHTML = allBadges.map(b => {
+    const earned = earnedMap[b.id];
+    return `
+      <div class="comp-card" style="text-align:center;${earned?'':'opacity:.4;filter:grayscale(1);'}">
+        <div style="font-size:40px;margin-bottom:8px;">${b.icon||'🏅'}</div>
+        <div class="comp-title">${escapeHtml(b.name)}</div>
+        <div class="comp-date">${escapeHtml(b.description||'')}</div>
+        ${earned ? `<span class="badge b-approved">Earned ${new Date(earned).toLocaleDateString()}</span>` : `<span class="badge b-pending">Locked</span>`}
+      </div>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   YEAR IN REVIEW
+═══════════════════════════════════════════════════════════ */
+$('#btn-year-review')?.addEventListener('click', async () => {
+  const year = new Date().getFullYear();
+  const yearStart = `${year}-01-01`;
+  const { data: progress } = await sb.from('reading_progress').select('completed_at').eq('user_id', ME.id).gte('completed_at', yearStart);
+  const { data: journals } = await sb.from('journal_entries').select('id,scripture_ref').eq('user_id', ME.id).gte('entry_date', yearStart);
+  const { data: myBadges } = await sb.from('user_badges').select('badge_id, badges(name,icon)').eq('user_id', ME.id);
+
+  // crude "most-read book" from journal scripture_ref first word
+  const bookCounts = {};
+  (journals||[]).forEach(j => {
+    const book = (j.scripture_ref||'').split(' ')[0];
+    if (book) bookCounts[book] = (bookCounts[book]||0)+1;
+  });
+  const topBook = Object.entries(bookCounts).sort((a,b)=>b[1]-a[1])[0]?.[0] || '—';
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.setFillColor(11,11,10); doc.rect(0,0,210,297,'F');
+  doc.setTextColor(232,206,122); doc.setFont('times','bold'); doc.setFontSize(26);
+  doc.text(`${year}`, 105, 40, { align:'center' });
+  doc.setFontSize(16); doc.text('Your Year in Scripture', 105, 52, { align:'center' });
+  doc.setDrawColor(198,162,77); doc.line(60,60,150,60);
+
+  doc.setFont('helvetica','normal'); doc.setFontSize(13); doc.setTextColor(240,235,215);
+  let y = 85;
+  const stat = (label, val) => { doc.setFont('helvetica','bold'); doc.text(String(val), 105, y, {align:'center'}); y+=7; doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.text(label, 105, y, {align:'center'}); y+=16; doc.setFontSize(13); };
+  stat('Days Spent in the Word', progress?.length || 0);
+  stat('Longest Streak', `${PROFILE.longest_streak||0} days`);
+  stat('Journal Entries Written', journals?.length || 0);
+  stat('Most-Reflected Book', topBook);
+  stat('Badges Earned', myBadges?.length || 0);
+
+  if (myBadges?.length){
+    doc.setFontSize(11); doc.setTextColor(198,162,77);
+    doc.text((myBadges.map(b=>`${b.badges?.icon||''} ${b.badges?.name||''}`).join('   ')), 105, y+4, { align:'center', maxWidth:170 });
+  }
+
+  doc.setFontSize(10); doc.setTextColor(140,130,100); doc.setFont('helvetica','italic');
+  doc.text('WRTB — We Read The Bible', 105, 280, { align:'center' });
+
+  doc.save(`WRTB-Year-in-Review-${year}.pdf`);
+});
+
+async function loadAdminReports(){
+  const { data } = await sb.from('profiles').select('*').eq('status','approved').order('full_name');
+  const c = $('#adminreports-list');
+  if (!data || !data.length){ c.innerHTML = '<div class="empty">No members yet.</div>'; return; }
+  c.innerHTML = data.map(p => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1.5px solid var(--border2);">
+      <span style="font-size:13px;font-weight:700;">${escapeHtml(p.full_name)}</span>
+      <button class="btn btn-ghost btn-sm" data-id="${p.id}">Download PDF</button>
+    </div>`).join('');
+  c.querySelectorAll('button').forEach(btn => {
+    btn.onclick = async () => {
+      const profile = data.find(p => p.id === btn.dataset.id);
+      const doc = await buildUserReportPdf(profile);
+      doc.save(`WRTB-Report-${profile.full_name.replace(/\s+/g,'_')}.pdf`);
+    };
+  });
+}
+$('#btn-collective-report')?.addEventListener('click', async () => {
+  const { data } = await sb.from('profiles').select('*').eq('status','approved').order('points',{ascending:false});
+  if (!data || !data.length) return;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  data.forEach((p, i) => {
+    if (i>0) doc.addPage();
+    doc.setFillColor(11,11,10); doc.rect(0,0,210,38,'F');
+    doc.setTextColor(198,162,77); doc.setFont('times','bold'); doc.setFontSize(18);
+    doc.text('WRTB — Collective Report', 14, 18);
+    doc.setTextColor(240,235,215); doc.setFontSize(11);
+    doc.text(`${i+1} of ${data.length}`, 14, 27);
+    doc.setTextColor(20,20,20); doc.setFont('helvetica','bold'); doc.setFontSize(13);
+    doc.text(p.full_name || 'Member', 14, 52);
+    doc.setFont('helvetica','normal'); doc.setFontSize(11);
+    doc.text(`Current Streak: ${p.current_streak||0} days`, 14, 64);
+    doc.text(`Longest Streak: ${p.longest_streak||0} days`, 14, 74);
+    doc.text(`Points: ${p.points||0}`, 14, 84);
+  });
+  doc.save(`WRTB-Collective-Report-${new Date().toISOString().slice(0,10)}.pdf`);
+});
+
+/* ═══════════════════════════════════════════════════════════
+   ADMIN: MANAGE READING PLAN
+═══════════════════════════════════════════════════════════ */
+async function loadPlanAdmin(){
+  const today = new Date().toISOString().slice(0,10);
+  const { data } = await sb.from('reading_plan_days').select('*').gte('plan_date', today).order('plan_date').limit(20);
+  const c = $('#planadmin-list');
+  if (!data || !data.length){ c.innerHTML = '<div class="empty">No upcoming days scheduled.</div>'; return; }
+  c.innerHTML = data.map(d => `
+    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1.5px solid var(--border2);font-size:13px;">
+      <span>Day ${d.day_number} — ${escapeHtml(d.reference)}</span><span style="color:var(--muted);">${d.plan_date}</span>
+    </div>`).join('');
+}
+$('#btn-add-plan-day')?.addEventListener('click', async () => {
+  const date = $('#pd-date').value, daynum = parseInt($('#pd-daynum').value), ref = $('#pd-ref').value.trim(), audio = $('#pd-audio').value.trim();
+  if (!date || !daynum || !ref){ alert('Date, day number, and reference are required.'); return; }
+  let { data: plan } = await sb.from('reading_plans').select('id').eq('is_active', true).limit(1).maybeSingle();
+  if (!plan){
+    const { data: newPlan, error } = await sb.from('reading_plans').insert({ title: `${new Date().getFullYear()} Reading Plan`, year: new Date().getFullYear(), created_by: ME.id }).select().single();
+    if (error){ alert(error.message); return; }
+    plan = newPlan;
+  }
+  const { error } = await sb.from('reading_plan_days').insert({ plan_id: plan.id, day_number: daynum, plan_date: date, reference: ref, audio_url: audio || null });
+  if (error){ alert(error.message); return; }
+  $('#pd-date').value=''; $('#pd-daynum').value=''; $('#pd-ref').value=''; $('#pd-audio').value='';
+  loadPlanAdmin();
+});
 
 /* ───────────── boot ───────────── */
 sb.auth.onAuthStateChange((event) => { if (event === 'SIGNED_OUT') showLogin(); });
